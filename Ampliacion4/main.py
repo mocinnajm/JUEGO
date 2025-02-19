@@ -45,11 +45,6 @@ lives = 3
 spawn_interval = 1500
 ADD_OBSTACLE = pygame.USEREVENT + 1
 
-# Grupos de sprites
-all_sprites = pygame.sprite.Group()
-obstacles = pygame.sprite.Group()
-bullets = pygame.sprite.Group()
-
 # ========================
 # Funciones Auxiliares
 # ========================
@@ -130,19 +125,36 @@ class Obstacle(pygame.sprite.Sprite):
 # ========================
 
 def new_game():
-    global score, difficulty_level, lives, player
+    global score, difficulty_level, lives, all_sprites, obstacles, player, bullets
     score = 0
     difficulty_level = 1
     lives = 3
-    all_sprites.empty()
-    obstacles.empty()
-    bullets.empty()
+    all_sprites = pygame.sprite.Group()
+    obstacles = pygame.sprite.Group()
+    bullets = pygame.sprite.Group()
     player = Player()
     all_sprites.add(player)
     pygame.time.set_timer(ADD_OBSTACLE, spawn_interval)
 
 # ========================
-# Bucle principal del juego
+# Función del menú principal
+# ========================
+
+def show_menu():
+    while True:
+        screen.fill(PURPLE)
+        draw_text(screen, "Joc Extensible", font, YELLOW, 300, 200)
+        draw_text(screen, "Prem qualsevol tecla per començar", font, YELLOW, 220, 250)
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                return
+
+# ========================
+# Función del bucle principal
 # ========================
 
 def game_loop():
@@ -162,15 +174,13 @@ def game_loop():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_p:
                     paused = not paused
-                if event.key == pygame.K_SPACE:
+                elif event.key == pygame.K_SPACE:
                     player.shoot()
 
         if not paused:
             all_sprites.update()
-            for bullet in bullets:
-                if pygame.sprite.spritecollide(bullet, obstacles, True):
-                    bullet.kill()
-            
+            bullets.update()
+            pygame.sprite.groupcollide(bullets, obstacles, True, True)
             if pygame.sprite.spritecollideany(player, obstacles):
                 global lives
                 lives -= 1
@@ -193,4 +203,6 @@ def game_loop():
 # Bucle principal
 # ========================
 while True:
-    game_loop()
+    show_menu()
+    final_score = game_loop()
+
